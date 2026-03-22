@@ -65,7 +65,7 @@ The system follows a **RAG (Retrieval-Augmented Generation)** pipeline:
 ```bash
 git clone https://github.com/YOUR_USERNAME/document-insight-service.git
 cd document-insight-service
-
+```
 ---
 
 ### 2. Create virtual environment
@@ -74,6 +74,7 @@ It is recommended to use a virtual environment to isolate project dependencies.
 
 ```bash
 python -m venv venv
+```
 
 Activate:
 
@@ -81,10 +82,11 @@ Windows:
 ```bash
 venv\Scripts\activate
 
+```
 Linux / macOS:
 ```bash
 source venv/bin/activate
-
+```
 ---
 
 ### 3. Install dependencies
@@ -92,6 +94,7 @@ source venv/bin/activate
 ```bash
 pip install --upgrade pip
 pip install -r requirements.txt
+```
 
 ---
 
@@ -100,6 +103,7 @@ pip install -r requirements.txt
 Docker:
 ```bash
 docker run -d --name redis-doc-insight -p 6379:6379 redis
+```
 
 ---
 
@@ -107,6 +111,7 @@ docker run -d --name redis-doc-insight -p 6379:6379 redis
 
 ```bash
 uvicorn app.main:app --reload
+```
 
 Open:
 http://127.0.0.1:8000/docs
@@ -117,6 +122,7 @@ http://127.0.0.1:8000/docs
 
 ```bash
 python gradio_ui/app.py
+```
 
 Open:
 http://127.0.0.1:7860
@@ -134,10 +140,12 @@ http://127.0.0.1:8000/api/health
 Run full system
 ```bash
 docker compose up --build
+```
 
 Stop:
 ```bash
 docker compose down
+```
 
 ---
 
