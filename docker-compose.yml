@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  backend:
+    build: .
+    container_name: document-insight-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST: redis
+      - REDIS_PORT: 6379
+    volumes:
+      - ./storage:/app/storage
+    depends_on:
+      - redis
+  
+  redis:
+    image: redis:7
+    container_name: document-insight-redis
+    ports:
+      - "6379:6379"
+  
+  gradio:
+    build: .
+    container_name: document-insight-gradio
+    command: python gradio_ui/app.py
+    ports:
+      - "7860:7860"
+    environment:
+      API_BASE_URL: http://backend:8000/api
+    depends_on:
+      - backend

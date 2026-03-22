@@ -1,0 +1,11 @@
+fastapi
+uvicorn[standard]
+pymupdf
+transformers==4.41.2
+torch
+sentence-transformers==2.7.0
+faiss-cpu
+redis
+gradio
+python-multipart
+requests
