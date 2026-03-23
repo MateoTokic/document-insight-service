@@ -58,104 +58,178 @@ The system follows a **RAG (Retrieval-Augmented Generation)** pipeline:
 
 ---
 
-## 📦 Manual Installation
+## Setup
 
-### 1. Clone repository
+### Option 1: Docker (Recommended)
 
-```bash
-git clone https://github.com/YOUR_USERNAME/document-insight-service.git
-cd document-insight-service
-```
----
+Spins up the FastAPI backend, Redis, and Gradio UI with one command. Requires Docker and Docker Compose installed.
 
-### 2. Create virtual environment
-
-It is recommended to use a virtual environment to isolate project dependencies.
-
-```bash
-python -m venv venv
-```
-
-Activate:
-
-Windows:
-```bash
-venv\Scripts\activate
-
-```
-Linux / macOS:
-```bash
-source venv/bin/activate
-```
----
-
-### 3. Install dependencies
-
-```bash
-pip install --upgrade pip
-pip install -r requirements.txt
-```
-
----
-
-### 4. Run Redis (required for caching)
-
-Docker:
-```bash
-docker run -d --name redis-doc-insight -p 6379:6379 redis
-```
-
----
-
-### 5. Run FastAPI backend
-
-```bash
-uvicorn app.main:app --reload
-```
-
-Open:
-http://127.0.0.1:8000/docs
-
----
-
-### 6. Run Gradio UI
-
-```bash
-python gradio_ui/app.py
-```
-
-Open:
-http://127.0.0.1:7860
-
----
-
-### 7. Verify Redis connection
-
-http://127.0.0.1:8000/api/health
-
----
-
-## 🐳 Docker Setup
-
-Run full system
 ```bash
 docker compose up --build
 ```
 
-Stop:
+Once running:
+
+| Service | URL |
+| --- | --- |
+| API Docs (Swagger) | <http://localhost:8000/docs> |
+| Gradio UI | <http://localhost:7860> |
+| Health Check | <http://localhost:8000/api/health> |
+
+The Docker Compose setup includes three services:
+- `backend` — FastAPI app on port 8000
+- `redis` — Redis 7 on port 6379
+- `gradio` — Gradio UI on port 7860, connected to the backend internally
+
+To stop everything:
+
 ```bash
 docker compose down
 ```
 
 ---
 
-## 📡 API Examples
+### Option 2: Manual Installation
 
-Upload:
-POST /api/upload
+Prerequisites: Python 3.10+, Redis running locally (or via Docker).
 
-Ask:
-POST /api/ask
+**1. Clone and create a virtual environment**
+
+```bash
+git clone <your-repo-url>
+cd document-insight-service
+
+python -m venv venv
+```
+
+Activate it:
+
+```bash
+# Windows
+venv\Scripts\activate
+
+# macOS / Linux
+source venv/bin/activate
+```
+
+**2. Install dependencies**
+
+```bash
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+**3. Start Redis**
+
+If you don't have Redis installed locally, run it via Docker:
+
+```bash
+docker run -d --name redis-doc-insight -p 6379:6379 redis:7
+```
+
+**4. Start the FastAPI backend**
+
+```bash
+uvicorn app.main:app --reload
+```
+
+API docs at <http://127.0.0.1:8000/docs>
+
+**5. Start the Gradio UI** (optional, in a separate terminal)
+
+```bash
+python gradio_ui/app.py
+```
+
+UI at <http://127.0.0.1:7860>
+
+**6. Verify everything is running**
+
+```bash
+curl http://127.0.0.1:8000/api/health
+```
+
+Expected:
+
+```json
+{ "status": "ok", "redis": "connected" }
+```
 
 ---
 
+## API Reference
+
+### `POST /api/upload` — Upload a PDF document
+
+Request (multipart/form-data):
+
+```bash
+curl -X POST http://localhost:8000/api/upload \
+  -F "file=@/path/to/document.pdf"
+```
+
+Response (`200 OK`):
+
+```json
+{
+  "message": "PDF uploaded and processed successfully",
+  "document_id": "3a275fd8-e313-4fc9-ba15-4319d8abc9e5",
+  "filename": "document.pdf",
+  "num_chunks": 42
+}
+```
+
+### `POST /api/ask` — Ask a question about the uploaded document
+
+Request (JSON):
+
+```bash
+curl -X POST http://localhost:8000/api/ask \
+  -H "Content-Type: application/json" \
+  -d '{"question": "What is the monthly payment?"}'
+```
+
+Response (`200 OK`):
+
+```json
+{
+  "question": "What is the monthly payment?",
+  "answer": "$1,250",
+  "retrieved_chunks": [
+    "The monthly payment for the service is $1,250, due on the first of each month...",
+    "Payment terms: Net 30. Monthly installment of $1,250 applies to all..."
+  ],
+  "cached": false
+}
+```
+
+On repeated identical questions, `"cached": true` is returned and inference is skipped.
+
+### `GET /api/health` — Health check
+
+```bash
+curl http://localhost:8000/api/health
+```
+
+Response:
+
+```json
+{ "status": "ok", "redis": "connected" }
+```
+
+## Example
+
+After uploading invoice.pdf (available at storage/uploads/invoice.pdf) this is an answer for question: "What is total amount due?" As this file was not uploaded and no questions had been asked before this question, there was no answer caached.
+
+<img width="1844" height="596" alt="image" src="https://github.com/user-attachments/assets/694ef0b3-6e9a-4d1f-a95b-0c110559414c" />
+
+This is the answer for question: "What is the price for consulting services in EUR?" related to the same pdf file.
+<img width="1769" height="565" alt="image" src="https://github.com/user-attachments/assets/27630f9b-7ecb-4e58-80e7-68cd2e37b9f2" />
+
+At the bottom of the webpage user can see chunks that are created from this pdf file:
+<img width="1825" height="656" alt="image" src="https://github.com/user-attachments/assets/ce690609-f373-45b2-ba16-22569dd0abae" />
+
+
+## Author
+
+Mateo Tokić
